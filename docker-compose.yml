@@ -1,0 +1,184 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: gdb-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=java
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    networks:
+      - gdb-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  eureka-server:
+    build: ./eureka-server
+    container_name: gdb-eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - gdb-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8761 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gateway-service:
+    build: ./gateway-service
+    container_name: gdb-gateway-service
+    ports:
+      - "8000:8000"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_CLOUD_GATEWAY_ROUTES_0_URI=http://auth-service:8004
+      - SPRING_CLOUD_GATEWAY_ROUTES_1_URI=http://users-service:8003
+      - SPRING_CLOUD_GATEWAY_ROUTES_2_URI=http://account-service:8001
+      - SPRING_CLOUD_GATEWAY_ROUTES_3_URI=http://transactions-service:8002
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - gdb-network
+
+  auth-service:
+    build: ./auth-service
+    container_name: gdb-auth-service
+    ports:
+      - "8004:8004"
+    environment:
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/auth_db
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=java
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - USERS_SERVICE_URL=http://users-service:8003
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - gdb-network
+
+  users-service:
+    build: ./users-service
+    container_name: gdb-users-service
+    ports:
+      - "8003:8003"
+    environment:
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/users_db
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=java
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - gdb-network
+
+  account-service:
+    build: ./account-service
+    container_name: gdb-account-service
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/accounts_db
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=java
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - AADHAR_SERVICE_URL=http://aadhar-service:8005
+      - COMPANY_SERVICE_URL=http://company-service:8006
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8007
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - gdb-network
+
+  transactions-service:
+    build: ./transactions-service
+    container_name: gdb-transactions-service
+    ports:
+      - "8002:8002"
+    environment:
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/trasaction_db
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=java
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - ACCOUNT_SERVICE_URL=http://account-service:8001
+      - PAYMENT_GATEWAY_SERVICE_URL=http://payment-gateway-service:8008
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - gdb-network
+
+  aadhar-service:
+    build: ./aadhar-service
+    container_name: gdb-aadhar-service
+    ports:
+      - "8005:8005"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - gdb-network
+
+  company-service:
+    build: ./company-service
+    container_name: gdb-company-service
+    ports:
+      - "8006:8006"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - gdb-network
+
+  payment-gateway-service:
+    build: ./payment-gateway-service
+    container_name: gdb-payment-gateway-service
+    ports:
+      - "8008:8008"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - gdb-network
+
+  frontend:
+    build: ./frontend
+    container_name: gdb-frontend
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    depends_on:
+      - gateway-service
+    networks:
+      - gdb-network
+
+networks:
+  gdb-network:
+    driver: bridge
