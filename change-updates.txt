@@ -1,0 +1,159 @@
+# Change Updates Log
+
+This file documents the step-by-step implementation of bug fixes and change requests from the training backlog.
+
+## MOD1: account-service
+
+### MOD1-CR-01: Decouple RestTemplate Bean
+- **Goal:** Move `RestTemplate` bean declaration from the main application class to a separate configuration class.
+- **Steps:**
+    1. Created `com.gdb.account.config.RestTemplateConfig` class.
+    2. Moved `@Bean` method for `RestTemplate` from `AccountServiceApplication.java` to `RestTemplateConfig.java`.
+    3. Added `@Configuration` annotation to `RestTemplateConfig.java`.
+
+### MOD1-BUG-01: NPE on validation helper injection
+- **Goal:** Register `AccountValidator` as a Spring component to prevent `NullPointerException` during injection.
+- **Steps:**
+    1. Added `@Component` annotation to `AccountValidator.java`. (Verified it is present)
+
+## MOD2: transactions-service (AOP)
+
+### MOD2-CR-01 & MOD2-BUG-01: Performance Monitoring and Double Execution Fix
+- **Goal:** Monitor execution metrics and fix double execution in `LoggingAspect`.
+- **Steps:**
+    1. Modified `LoggingAspect.java` in `transactions-service`.
+    2. Changed `@Around` advice to call `joinPoint.proceed()` exactly once.
+    3. Captured the result of `proceed()` and returned it to the caller.
+    4. Logged the start time, method name, and calculated duration for performance monitoring.
+
+## MOD3: transactions-service (JDBC)
+
+### MOD3-CR-01: Upgrade to Named Parameters
+- **Goal:** Replace `JdbcTemplate` with `NamedParameterJdbcTemplate` for better readability and maintainability.
+- **Steps:**
+    1. Updated `FundTransferRepositoryImpl.java` to use `NamedParameterJdbcTemplate`.
+    2. Rewrote all SQL queries to use named parameters (e.g., `:fromAccount`, `:toAccount`).
+    3. Used `MapSqlParameterSource` to bind values to named parameters.
+
+### MOD3-BUG-01: SQL parameters count mismatch
+- **Goal:** Fix `IndexOutOfBoundsException` in `findByAccount` method.
+- **Steps:**
+    1. Identifed that the positional query `WHERE from_account = ? OR to_account = ?` was missing one binding argument.
+    2. By switching to `NamedParameterJdbcTemplate` in MOD3-CR-01, the issue was naturally resolved as the same named parameter `:accountNumber` can be reused multiple times in the query.
+
+## MOD4: users-service (JPA & Controllers)
+
+### MOD4-CR-01: Create Alert Logging Repository
+- **Goal:** Implement `SecurityAlertLog` entity and a JPA repository for tracking security alerts.
+- **Steps:**
+    1. Verified `SecurityAlertLog.java` is mapped as a JPA `@Entity`.
+    2. Verified `SecurityAlertRepository.java` extends `JpaRepository`.
+
+### MOD4-BUG-01: Mapped Property Sort crash
+- **Goal:** Fix `PropertyReferenceException` when sorting security alerts.
+- **Steps:**
+    1. Modified `SecurityAlertController.java`.
+    2. Changed the default `sortBy` value from `alert_date` (database column) to `alertDate` (entity property).
+
+## MOD5: transactions-service (Profiles & Properties)
+
+### MOD5-CR-01: Configure Profile Properties
+- **Goal:** Segment YAML configuration into environment-specific Dev/Prod profiles.
+- **Steps:**
+    1. Created `application-dev.yml` with development-specific settings (local DB, debug logging).
+    2. Created `application-prod.yml` with production-specific settings (env-variable based DB, info logging).
+    3. Updated `application.yml` to set `spring.profiles.active: dev` as the default.
+
+### MOD5-BUG-01: Limits map to 0 due to name mismatch
+- **Goal:** Fix `@ConfigurationProperties` mapping failure.
+- **Steps:**
+    1. Identified that the configuration key `banking.limits.daily-max` did not map to the field `dailyMaxLimit` in `TransferProperties.java`.
+    2. Renamed the field in `TransferProperties.java` to `dailyMax` to leverage Spring's relaxed binding.
+    3. Updated `TransferLimitServiceImpl.java` to call the renamed `getDailyMax()` method.
+
+## MOD6: transactions-service (DTO Validation)
+
+### MOD6-CR-01: Introduce Deposit transaction cap
+- **Goal:** Add a $50,000.00 cap on single deposits via Bean Validation.
+- **Steps:**
+    1. Modified `DepositRequest.java`.
+    2. Added `@DecimalMax(value = "50000.00", message = "Deposits cannot exceed 50,000.00")` to the `amount` field.
+
+### MOD6-BUG-01: Missing Validation on payload
+- **Goal:** Enable validation for the deposit request payload in the controller.
+- **Steps:**
+    1. Modified `DepositController.java`.
+    2. Added `@Valid` annotation to the `DepositRequest` parameter in the `processDeposit` method.
+
+## MOD7: account-service (Caching)
+
+### MOD7-CR-01: Configure Cache Management
+- **Goal:** Enable Spring Caching to improve query performance.
+- **Steps:**
+    1. Added `@EnableCaching` to `AccountServiceApplication.java`.
+    2. Verified `@Cacheable` annotation on `getAccountByNumber` in `AccountServiceImpl.java`.
+
+### MOD7-BUG-01: Cache Eviction
+- **Goal:** Fix stale data issue by evicting cache on balance updates.
+- **Steps:**
+    1. Modified `AccountServiceImpl.java`.
+    2. Added `@CacheEvict(value = "accounts", key = "#request.accountNumber")` to both `debitAccount` and `creditAccount` methods.
+
+## MOD8: security & auth (Token Revocation & Roles)
+
+### MOD8-CR-01: Check Token Blacklist
+- **Goal:** Ensure logged-out users cannot use their old tokens.
+- **Steps:**
+    1. Updated `auth-service`'s `TokenValidationResponse` and `UserAuthServiceImpl` to include `isRevoked` status by checking the `tokenRepository`.
+    2. Updated `transactions-service`'s `AuthClient` to receive the `isRevoked` field.
+    3. Modified `SecurityFilter.java` in `transactions-service` to reject requests if `validationResponse.isRevoked()` is true.
+
+### MOD8-BUG-01: Mapped operator denies access
+- **Goal:** Fix logical error in role-based authorization check.
+- **Steps:**
+    1. Modified `SecurityUtils.java` in `users-service`.
+    2. Changed the operator from `||` to `&&` in `checkAdminOrTellerRole` to correctly allow both roles.
+
+## MOD9: account-service (Testing)
+
+### MOD9-CR-01: MockMvc Integration Tests
+- **Goal:** Implement integration tests for the `AccountController`.
+- **Steps:**
+    1. Updated `AccountControllerTest.java` to include tests for GET and POST endpoints.
+    2. Used `MockMvc` to perform requests and assert status codes and response content.
+    3. Mocked `AccountService` to simulate various scenarios (success, not found, validation error).
+
+### MOD9-BUG-01: NPE due to missing Mockito Runner
+- **Goal:** Fix unit test failure by initializing Mockito mocks.
+- **Steps:**
+    1. Added `@ExtendWith(MockitoExtension.class)` to `AadharClientTest.java`.
+
+## MOD10: API Gateway
+
+### MOD10-CR-01: Gateway Routing
+- **Goal:** Initialize a new gateway-service to route API calls.
+- **Steps:**
+    1. Created `gateway-service/pom.xml` with `spring-cloud-starter-gateway`.
+    2. Created `GatewayApplication.java` with `@EnableDiscoveryClient`.
+    3. Configured `application.yml` with routes for `auth-service`, `users-service`, `account-service`, and `transactions-service`.
+
+### MOD10-BUG-01: Mismatch on target fallback port
+- **Goal:** Fix incorrect fallback port for Aadhar verification.
+- **Steps:**
+    1. Modified `account-service/src/main/resources/application.yml`.
+    2. Changed `http://localhost:8008` to `http://localhost:8005` for the `aadhar-service` URL.
+
+## MOD11: account-service (Resilience & Error Handling)
+
+### MOD11-CR-01: Add Resilience4j Retry
+- **Goal:** Implement retry logic for external service calls.
+- **Steps:**
+    1. Added `resilience4j-spring-boot3` and `spring-boot-starter-aop` dependencies to `account-service/pom.xml`.
+    2. Added `@Retry(name = "aadharService", fallbackMethod = "verifyAadharFallback")` to `verifyAadhar` method in `AadharClient.java`.
+    3. Implemented `verifyAadharFallback` method.
+
+### MOD11-BUG-01: Exception Handler
+- **Goal:** Propagate specific validation errors from external services instead of swallowing them.
+- **Steps:**
+    1. Modified `AadharClient.java`.
+    2. Added a catch block for `HttpClientErrorException` to extract and throw the specific error message from the Aadhar service.

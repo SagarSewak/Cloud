@@ -1,0 +1,101 @@
+# Detailed Microservices and Dependencies Outline
+
+This document provides a comprehensive list of all microservices in the Global Digital Bank project and their respective technical dependencies.
+
+---
+
+## 1. account-service
+**Description:** Manages bank account creation, balance retrieval, and integration with Aadhar for verification.
+**Dependencies:**
+- `spring-boot-starter-web`: For REST API development.
+- `spring-boot-starter-jdbc`: For database connectivity.
+- `spring-boot-starter-validation`: For payload validation.
+- `postgresql`: Database driver for PostgreSQL.
+- `flyway-core` & `flyway-database-postgresql`: For database migrations.
+- `lombok`: To reduce boilerplate code.
+- `springdoc-openapi-starter-webmvc-ui`: For Swagger documentation.
+- `resilience4j-spring-boot3`: For implementing retry and fallback logic.
+- `spring-boot-starter-aop`: Required for Resilience4j and logging aspects.
+- `spring-cloud-starter-netflix-eureka-client`: To register with Eureka Server.
+- `jbcrypt`: For password hashing (if applicable).
+- `spring-boot-starter-test`: For unit and integration testing.
+
+---
+
+## 2. auth-service
+**Description:** Handles user authentication, JWT token generation, and role-based access control.
+**Dependencies:**
+- `spring-boot-starter-web`: For REST API endpoints.
+- `spring-boot-starter-jdbc`: For user and token database storage.
+- `jjwt-api`, `jjwt-impl`, `jjwt-jackson`: For JSON Web Token (JWT) management.
+- `postgresql`, `flyway-core`, `flyway-database-postgresql`: Database management.
+- `lombok`, `spring-boot-devtools`: Development utilities.
+- `spring-cloud-starter-netflix-eureka-client`: Eureka registration.
+- `springdoc-openapi-starter-webmvc-ui`: API documentation.
+
+---
+
+## 3. transactions-service
+**Description:** Processes deposits, withdrawals, and fund transfers between accounts.
+**Dependencies:**
+- `spring-boot-starter-web`: REST API support.
+- `spring-boot-starter-aop`: For performance monitoring aspects.
+- `spring-boot-starter-jdbc`: For high-performance transaction logging.
+- `spring-boot-starter-webflux`: Provides `WebClient` for calling other services.
+- `spring-cloud-starter-netflix-eureka-client`: Eureka registration.
+- `postgresql`, `flyway-core`, `flyway-database-postgresql`: Persistence.
+- `lombok`, `springdoc-openapi`: Documentation and utilities.
+
+---
+
+## 4. users-service
+**Description:** Manages user profiles, demographic data, and security alerts.
+**Dependencies:**
+- `spring-boot-starter-web`: REST API.
+- `spring-boot-starter-data-jpa`: For entity-based database management.
+- `spring-boot-starter-jdbc`: Base JDBC support.
+- `postgresql`, `flyway-core`: Persistence.
+- `jbcrypt`: For securing user passwords.
+- `spring-cloud-starter-netflix-eureka-client`: Eureka registration.
+- `lombok`, `springdoc-openapi`: Utilities.
+
+---
+
+## 5. eureka-server
+**Description:** Acts as the Service Registry where all microservices register their location (IP and Port).
+**Dependencies:**
+- `spring-cloud-starter-netflix-eureka-server`: The core Eureka server component.
+- `spring-boot-starter-test`: Testing support.
+
+---
+
+## 6. gateway-service
+**Description:** The API Gateway that routes all external requests to the appropriate microservice.
+**Dependencies:**
+- `spring-cloud-starter-gateway`: Core Gateway routing functionality.
+- `spring-cloud-starter-netflix-eureka-client`: To discover other services via Eureka.
+
+---
+
+## 7. aadhar-service
+**Description:** A simulated external service used to verify Aadhar numbers.
+**Dependencies:**
+- `spring-boot-starter-web`: REST API.
+- `lombok`, `springdoc-openapi`: Utilities.
+
+---
+
+## 8. company-service & payment-gateway-service
+**Description:** Support services for corporate banking and external payment processing.
+**Dependencies:**
+- `spring-boot-starter-web`: REST API.
+- `postgresql`, `flyway-core`: Persistence (where applicable).
+- `lombok`, `springdoc-openapi`: Utilities.
+
+---
+
+## Shared Technologies Across All Services
+- **Spring Boot 3.4.2**: The underlying application framework.
+- **Java 17**: The programming language.
+- **Spring Cloud 2023.0.0**: For microservice coordination (Eureka, Gateway, Config).
+- **Maven**: For project build and dependency management.

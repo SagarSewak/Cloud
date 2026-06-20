@@ -1,0 +1,14 @@
+server:
+  port: 8002
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/trasaction_db
+    username: postgres
+    password: java
+  flyway:
+    enabled: true
+
+logging:
+  level:
+    com.gdb.transactions: DEBUG
