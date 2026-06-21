@@ -1,5 +1,4 @@
 name: GDB CloudOps CI/CD Pipeline
-working-directory: ./Cloud
 
 on:
   push:
