@@ -1,4 +1,5 @@
 name: GDB CloudOps CI/CD Pipeline
+working-directory: ./Cloud
 
 on:
   push:
@@ -33,7 +34,7 @@ jobs:
         run: |
           for service in aadhar-service account-service auth-service company-service eureka-server gateway-service payment-gateway-service transactions-service users-service; do
             echo "Building $service..."
-            mvn -pl $service clean package -Dmaven.test.skip=true
+            (cd "$service" && mvn clean package -Dmaven.test.skip=true)
           done
 
       - name: Upload Build Artifacts
