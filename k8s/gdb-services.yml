@@ -18,6 +18,9 @@ spec:
           image: ghcr.io/gdb/eureka-server:latest
           ports:
             - containerPort: 8761
+          env:
+            - name: SPRING_CLOUD_COMPATIBILITY_VERIFIER_ENABLED
+              value: "false"
           imagePullPolicy: IfNotPresent
 
 ---
@@ -55,6 +58,8 @@ spec:
           ports:
             - containerPort: 8000
           env:
+            - name: SPRING_CLOUD_COMPATIBILITY_VERIFIER_ENABLED
+              value: "false"
             - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
               valueFrom:
                 configMapKeyRef:
@@ -97,6 +102,8 @@ spec:
           ports:
             - containerPort: 8004
           env:
+            - name: SPRING_CLOUD_COMPATIBILITY_VERIFIER_ENABLED
+              value: "false"
             - name: DATABASE_URL
               valueFrom:
                 configMapKeyRef:
@@ -164,6 +171,8 @@ spec:
           ports:
             - containerPort: 8003
           env:
+            - name: SPRING_CLOUD_COMPATIBILITY_VERIFIER_ENABLED
+              value: "false"
             - name: DATABASE_URL
               valueFrom:
                 configMapKeyRef:
@@ -221,6 +230,8 @@ spec:
           ports:
             - containerPort: 8001
           env:
+            - name: SPRING_CLOUD_COMPATIBILITY_VERIFIER_ENABLED
+              value: "false"
             - name: DATABASE_URL
               valueFrom:
                 configMapKeyRef:
@@ -288,6 +299,8 @@ spec:
           ports:
             - containerPort: 8002
           env:
+            - name: SPRING_CLOUD_COMPATIBILITY_VERIFIER_ENABLED
+              value: "false"
             - name: DATABASE_URL
               valueFrom:
                 configMapKeyRef:
@@ -355,6 +368,8 @@ spec:
           ports:
             - containerPort: 8005
           env:
+            - name: SPRING_CLOUD_COMPATIBILITY_VERIFIER_ENABLED
+              value: "false"
             - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
               valueFrom:
                 configMapKeyRef:
@@ -397,6 +412,8 @@ spec:
           ports:
             - containerPort: 8006
           env:
+            - name: SPRING_CLOUD_COMPATIBILITY_VERIFIER_ENABLED
+              value: "false"
             - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
               valueFrom:
                 configMapKeyRef:
@@ -439,6 +456,8 @@ spec:
           ports:
             - containerPort: 8008
           env:
+            - name: SPRING_CLOUD_COMPATIBILITY_VERIFIER_ENABLED
+              value: "false"
             - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
               valueFrom:
                 configMapKeyRef:
