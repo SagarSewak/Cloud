@@ -83,7 +83,7 @@ jobs:
           name: backend-jars
 
       - name: Set up Docker Buildx
-        uses: actions/setup-docker-actions/setup-buildx@v1
+        uses: docker/setup-buildx-action@v3
         continue-on-error: true
 
       - name: Log in to Registry
