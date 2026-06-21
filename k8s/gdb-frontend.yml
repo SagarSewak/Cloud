@@ -42,16 +42,13 @@ kind: Ingress
 metadata:
   name: gdb-ingress
   namespace: gdb
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
-    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   rules:
     - host: gdb.local
       http:
         paths:
           # Route all backend API requests starting with /api to the gateway service
-          - path: /api/(.*)
+          - path: /api
             pathType: Prefix
             backend:
               service:
@@ -59,7 +56,7 @@ spec:
                 port:
                   number: 8000
           # Route all other web requests to the frontend service
-          - path: /(.*)
+          - path: /
             pathType: Prefix
             backend:
               service:
