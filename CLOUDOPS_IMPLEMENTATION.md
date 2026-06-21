@@ -59,9 +59,9 @@ Cloud/
 
 ### Level 2: Docker Containerization
 Dockerfiles were created for each of the microservices:
-*   **Backend Services** (`openjdk:17-jdk-slim`): Built runtime containers executing the package JAR files:
+*   **Backend Services** (`eclipse-temurin:17-jre-alpine`): Built runtime containers executing the package JAR files:
     ```dockerfile
-    FROM openjdk:17-jdk-slim
+    FROM eclipse-temurin:17-jre-alpine
     WORKDIR /app
     COPY target/*.jar app.jar
     EXPOSE <PORT>

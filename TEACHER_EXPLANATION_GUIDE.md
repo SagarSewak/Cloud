@@ -21,7 +21,7 @@ Here is the exact order in which we built and configured this project:
 
 ### Step 2: Docker Containerization (Level 2)
 *   **What we did:** Wrote a `Dockerfile` for every single service.
-    *   **For Backend:** Used `openjdk:17-jdk-slim` as the base image to copy and run the compiled JAR files.
+    *   **For Backend:** Used `eclipse-temurin:17-jre-alpine` as the base image to copy and run the compiled JAR files.
     *   **For Frontend:** Used a **multi-stage build**. Stage 1 compiles the React code with Node, and Stage 2 copies the compiled assets to Nginx (`nginx:stable-alpine`) to serve it on port 80.
 *   **Why we did it:** To resolve the "works on my machine" problem. Containers guarantee that the application runs identically on your laptop, the teacher's laptop, or AWS.
 *   **Key Files:** [gateway-service/Dockerfile](./gateway-service/Dockerfile), [frontend/Dockerfile](./frontend/Dockerfile), and other backend Dockerfiles.
