@@ -95,6 +95,10 @@ jobs:
 
       - name: Build and Push Microservices
         run: |
+          # Lowercase the repository name for GHCR compatibility
+          REPO_NAME_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_NAME_PREFIX="ghcr.io/${REPO_NAME_LOWER}"
+
           # Determine tag (main/dev/commit-sha)
           TAG="latest"
           if [ "${{ github.ref_name }}" = "main" ]; then
@@ -105,7 +109,7 @@ jobs:
           
           SERVICES="eureka-server gateway-service auth-service users-service account-service transactions-service aadhar-service company-service payment-gateway-service"
           for svc in $SERVICES; do
-            IMAGE_NAME="${{ env.IMAGE_NAME_PREFIX }}/$svc"
+            IMAGE_NAME="${IMAGE_NAME_PREFIX}/$svc"
             echo "Building and pushing Docker image for $svc..."
             docker build -t $IMAGE_NAME:$TAG -t $IMAGE_NAME:${{ github.sha }} ./$svc
             docker push $IMAGE_NAME:$TAG
@@ -114,6 +118,10 @@ jobs:
 
       - name: Build and Push Frontend
         run: |
+          # Lowercase the repository name for GHCR compatibility
+          REPO_NAME_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_NAME_PREFIX="ghcr.io/${REPO_NAME_LOWER}"
+
           TAG="latest"
           if [ "${{ github.ref_name }}" = "main" ]; then
             TAG="prod"
@@ -121,7 +129,7 @@ jobs:
             TAG="dev"
           fi
           
-          IMAGE_NAME="${{ env.IMAGE_NAME_PREFIX }}/frontend"
+          IMAGE_NAME="${IMAGE_NAME_PREFIX}/frontend"
           echo "Building and pushing Docker image for frontend..."
           docker build -t $IMAGE_NAME:$TAG -t $IMAGE_NAME:${{ github.sha }} ./frontend
           docker push $IMAGE_NAME:$TAG
