@@ -10,7 +10,7 @@ spring:
     ansi:
       enabled: ALWAYS
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/trasaction_db}
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/transaction_db}
     username: ${DATABASE_USER:postgres}
     password: ${DATABASE_PASSWORD:java}
     driver-class-name: org.postgresql.Driver

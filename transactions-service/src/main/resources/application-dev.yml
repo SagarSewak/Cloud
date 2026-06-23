@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/trasaction_db
+    url: jdbc:postgresql://localhost:5432/transaction
     username: postgres
     password: java
   flyway:

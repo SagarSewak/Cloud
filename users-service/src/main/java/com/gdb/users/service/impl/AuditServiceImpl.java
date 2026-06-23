@@ -7,6 +7,8 @@ import com.gdb.users.service.AuditService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -17,6 +19,7 @@ public class AuditServiceImpl implements AuditService {
     private final ObjectMapper objectMapper;
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logAction(Long userId, String action, Object oldData, Object newData) {
         try {
             String oldDataJson = oldData != null ? objectMapper.writeValueAsString(oldData) : null;

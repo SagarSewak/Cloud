@@ -37,7 +37,7 @@ public class AccountControllerTest {
                 .accountNumber(accountNumber)
                 .name("John Doe")
                 .balance(new BigDecimal("1000.00"))
-                .type("SAVINGS")
+                .accountType("SAVINGS")
                 .build();
 
         Mockito.when(accountService.getAccountByNumber(accountNumber)).thenReturn(response);
